@@ -93,15 +93,13 @@ private:
 
 public:
 	int signData(int mess, uint64_t key) {
-		//2 random prime numbers
-		double p = 11;
-		double q = 22;
-		double n = p * q;//calculate n
+		double p = 18;
+		double q = 97;
+		double n = p * q;
 		uint64_t track;
-		double phi = (p - 1) * (q - 1);//calculate phi
+		double phi = (p - 1) * (q - 1);
 
 		double e = key;
-		//for checking that 1 < e < phi(n) and gcd(e, phi(n)) = 1; i.e., e and phi(n) are coprime.
 		while (e < phi) {
 			track = gcd(e, phi);
 			if (track == 1)
@@ -109,7 +107,7 @@ public:
 			else
 				e++;
 		}
-		uint64_t c = pow(mess, e); //encrypt the message
+		uint64_t c = pow(mess, e);
 		c = fmod(c, n);
 
 		message = mess;
@@ -118,15 +116,12 @@ public:
 	}
 
 	bool verifySignature(int sign, int mess, uint64_t key) {
-		//2 random prime numbers
 		double p = 11;
 		double q = 22;
-		double n = p * q;//calculate n
+		double n = p * q;
 		uint64_t track;
-		double phi = (p - 1) * (q - 1);//calculate phi
-
+		double phi = (p - 1) * (q - 1);
 		double e = key;
-		//for checking that 1 < e < phi(n) and gcd(e, phi(n)) = 1; i.e., e and phi(n) are coprime.
 		while (e < phi) {
 			track = gcd(e, phi);
 			if (track == 1)
@@ -137,18 +132,16 @@ public:
 
 		double d1 = 1 / e;
 		double d = fmod(d1, phi);
-		double c = pow(mess, e); //encrypt the message
+		double c = pow(mess, e); 
 		uint64_t m = pow(c, d);
 		m = fmod(m, n);
 
 		if (m == sign && mess == message)
 		{
-			//cout << "\nTrue" << endl;
 			return true;
 		}
 		else
 		{
-			//cout << "\nFalse" << endl;
 			return false;
 		}
 	}
