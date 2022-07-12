@@ -6,19 +6,9 @@
 #include <vector>
 #include <math.h>
 #include <random>
+#include <numeric>
 
 using namespace std;
-
-int GDC(int a, int b) {
-	double t;
-	while (1) {
-		t = a % b;
-		if (t == 0)
-			return b;
-		a = b;
-		b = t;
-	}
-}
 
 class KeyPair {
 private:
@@ -113,7 +103,7 @@ public:
 		double e = key;
 		//for checking that 1 < e < phi(n) and gcd(e, phi(n)) = 1; i.e., e and phi(n) are coprime.
 		while (e < phi) {
-			track = GDC(e, phi);
+			track = gcd(e, phi);
 			if (track == 1)
 				break;
 			else
@@ -138,7 +128,7 @@ public:
 		double e = key;
 		//for checking that 1 < e < phi(n) and gcd(e, phi(n)) = 1; i.e., e and phi(n) are coprime.
 		while (e < phi) {
-			track = GDC(e, phi);
+			track = gcd(e, phi);
 			if (track == 1)
 				break;
 			else
@@ -234,5 +224,4 @@ public:
 
 		return sign;
 	}
-
 };
