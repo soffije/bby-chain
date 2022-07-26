@@ -1,3 +1,4 @@
+#include <openssl/sha.h>
 #include <iostream>
 #include <ctime>
 #include <cstdlib>
@@ -93,13 +94,15 @@ private:
 
 public:
 	int signData(int mess, uint64_t key) {
-		double p = 18;
-		double q = 97;
-		double n = p * q;
+		//2 random prime numbers
+		double p = 11;
+		double q = 22;
+		double n = p * q;//calculate n
 		uint64_t track;
-		double phi = (p - 1) * (q - 1);
+		double phi = (p - 1) * (q - 1);//calculate phi
 
 		double e = key;
+		//for checking that 1 < e < phi(n) and gcd(e, phi(n)) = 1; i.e., e and phi(n) are coprime.
 		while (e < phi) {
 			track = gcd(e, phi);
 			if (track == 1)
@@ -107,7 +110,7 @@ public:
 			else
 				e++;
 		}
-		uint64_t c = pow(mess, e);
+		uint64_t c = pow(mess, e); //encrypt the message
 		c = fmod(c, n);
 
 		message = mess;
@@ -116,12 +119,15 @@ public:
 	}
 
 	bool verifySignature(int sign, int mess, uint64_t key) {
+		//2 random prime numbers
 		double p = 11;
 		double q = 22;
-		double n = p * q;
+		double n = p * q;//calculate n
 		uint64_t track;
-		double phi = (p - 1) * (q - 1);
+		double phi = (p - 1) * (q - 1);//calculate phi
+
 		double e = key;
+		//for checking that 1 < e < phi(n) and gcd(e, phi(n)) = 1; i.e., e and phi(n) are coprime.
 		while (e < phi) {
 			track = gcd(e, phi);
 			if (track == 1)
@@ -132,16 +138,18 @@ public:
 
 		double d1 = 1 / e;
 		double d = fmod(d1, phi);
-		double c = pow(mess, e); 
+		double c = pow(mess, e); //encrypt the message
 		uint64_t m = pow(c, d);
 		m = fmod(m, n);
 
 		if (m == sign && mess == message)
 		{
+			//cout << "\nTrue" << endl;
 			return true;
 		}
 		else
 		{
+			//cout << "\nFalse" << endl;
 			return false;
 		}
 	}
@@ -178,9 +186,13 @@ public:
 		return acc;
 	}
 
-	/*uint64_t getPub(int index) {
+	uint64_t getPub(int index) {
 		return wallet[index];
-	}*/
+	}
+
+	uint64_t getID() {
+		return accountID;
+	}
 
 	void addKeyPairToWallet() {
 		KeyPair key{};
@@ -217,4 +229,175 @@ public:
 
 		return sign;
 	}
+
+};
+
+class Operation {
+private:
+	Account sender; //отправитель
+	Account receiver; //получатель
+	int amount; //сколько
+	int signature; //подпись отправителя
+
+public:
+	Operation createOperation(Account sender, Account receiver, int amount, int signature) {
+		Operation operation;
+		operation.sender = sender;
+		operation.receiver = receiver;
+		operation.amount = amount;
+		operation.signature = signature;
+
+		if (&Operation::verifyOperation) {
+			operation.sender.createPaymentOp(operation.receiver, operation.amount, 1);
+		}
+		return operation;
+	}
+
+	bool verifyOperation(Operation operation) {
+
+		Signature sign{};
+
+		if (sign.verifySignature(operation.signature, operation.sender.getPub(0), 16)) {
+
+			if (operation.amount <= operation.sender.getBalance()) {
+
+				return true;
+
+			}
+
+		}
+
+	}
+
+	/*
+	
+	
+	*/
+
+};
+
+class Transaction {
+private:
+	Operation setOfOperations[0xfffff];
+	string transactionID;
+	int nonce = 0;
+
+public:
+	Transaction createTransaction(Operation operation) {
+
+		Transaction transaction;
+
+		transaction.setOfOperations[nonce] = operation;
+		transaction.nonce++;
+
+		return transaction;
+	}
+};
+
+class Hash {
+private:
+	unsigned char digest[SHA_DIGEST_LENGTH];
+	string hash_str;
+	string hash_data;
+
+public:
+	string toSHA1(string data) {
+		//char* string[] = hash_str;
+		SHA1((unsigned char*)&string, strlen(string), (unsigned char*)&digest);
+		return hash_data;
+	}
+};
+
+class Block {
+private:
+	Transaction setOfTransactions[0xff];
+	string BlockID;
+	string prevHash;
+	
+public:
+	Block createBlock(Transaction setOfTransactions[], string prevHash) {
+		Block block;
+		string temp;
+		Hash hash;
+		BlockID = hash.toSHA1(temp);
+
+		block.prevHash = prevHash;
+
+		for (int i = 0; i < 0xff; i++)
+		{
+			block.setOfTransactions[i] = setOfTransactions[i];
+		}
+
+		return block;
+	}
+
+	Block genBlock(Transaction ttn) {
+		Block block;
+		string temp;;
+		Hash hash;
+		BlockID = hash.toSHA1(temp);
+
+		block.setOfTransactions[0] = ttn;
+
+		return block;
+	}
+
+	string getPrevHash() {
+		return prevHash;
+	}
+
+	string getBlockID() {
+		return BlockID;
+	}
+
+};
+
+class Blockchain {
+private:
+	Account coinDatabase[210000];
+	Block blockHistory[210];
+	int index_block = 0;
+	int index = 0;
+	int faucetCoins = 1000;
+
+public:
+	Blockchain initBlockchain(Transaction ttn) {
+		Block block;
+		block.genBlock(ttn);
+
+		blockHistory[index_block] = block;
+
+		index_block++;
+	}
+
+	void getTokenFromFaucet(Account& account, int amount) {
+		if (amount <= faucetCoins)
+		{
+			faucetCoins -= amount;
+			int balance = account.getBalance() + amount;
+			account.getBalance(balance);
+		}
+	}
+
+	void validateBlock(Block block) {
+		if (block.getPrevHash() == blockHistory[index_block - 1].getBlockID())
+		{
+			blockHistory[index_block] = block;
+			index_block++;
+		}
+	}
+
+	void setAcc(Account acc) {
+		coinDatabase[index] = acc;
+		index++;
+	}
+
+	void showCoinDatabase() {
+		for (int i = 0; i < index; i++)
+		{
+			cout << "Your Account ID: " << coinDatabase[i].getID() << '\n'; 
+			cout << "Your Balance: " << coinDatabase[i].getBalance() << '\n';
+		}
+	}
+
 };
