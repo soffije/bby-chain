@@ -356,18 +356,19 @@ class Blockchain {
 private:
 	Account coinDatabase[210000];
 	Block blockHistory[210];
-	int index_block = 0;
-	int index = 0;
+	vector<Block> txDatabase;
 	int faucetCoins = 1000;
+	int index_b = 0;
+	int index_a = 0;
 
 public:
 	Blockchain initBlockchain(Transaction ttn) {
 		Block block;
 		block.genBlock(ttn);
 
-		blockHistory[index_block] = block;
+		blockHistory[index_b] = block;
 
-		index_block++;
+		index_b++;
 	}
 
 	void getTokenFromFaucet(Account& account, int amount) {
@@ -380,20 +381,20 @@ public:
 	}
 
 	void validateBlock(Block block) {
-		if (block.getPrevHash() == blockHistory[index_block - 1].getBlockID())
+		if (block.getPrevHash() == blockHistory[index_b - 1].getBlockID())
 		{
-			blockHistory[index_block] = block;
-			index_block++;
+			blockHistory[index_b] = block;
+			index_b++;
 		}
 	}
 
-	void setAcc(Account acc) {
-		coinDatabase[index] = acc;
-		index++;
+	void setAccount(Account a) {
+		coinDatabase[index_a] = a;
+		index_a++;
 	}
 
-	void showCoinDatabase() {
-		for (int i = 0; i < index; i++)
+	void getTokenFromFaucet() {
+		for (int i = 0; i < index_a; i++)
 		{
 			cout << "Your Account ID: " << coinDatabase[i].getID() << '\n'; 
 			cout << "Your Balance: " << coinDatabase[i].getBalance() << '\n';
